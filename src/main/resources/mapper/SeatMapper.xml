@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mapper.SeatMapper">
+
+    <!-- 모든 좌석 정보 조회 -->
+    <select id="getAllSeats" resultType="com.reading_room_reservation.entity.Seat">
+        SELECT * FROM seats
+    </select>
+
+    <!-- 특정 좌석 정보 조회 -->
+    <select id="getSeatById" resultType="com.reading_room_reservation.entity.Seat" parameterType="int">
+        SELECT * FROM seats WHERE id = #{id}
+    </select>
+
+    <!-- 좌석 상태 업데이트 -->
+    <update id="updateSeatAvailability" parameterType="map">
+        UPDATE seats
+        SET is_available = #{isAvailable}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
