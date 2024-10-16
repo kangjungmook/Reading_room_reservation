@@ -1,14 +1,27 @@
 package org.example.reading_room_reservation.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.*;
 import org.example.reading_room_reservation.entity.Reservation;
 
+import java.sql.Timestamp;
 import java.util.List;
+
 @Mapper
 public interface ReservationMapper {
-    void insertReservation(Reservation reservation);
-    void updateReservation(Reservation reservation);
+
+    @Select("SELECT * FROM reservations")
+    List<Reservation> getAllReservations();
+
+    @Select("SELECT * FROM reservations WHERE id = #{id}")
+    Reservation getReservationById(int id);
+
+    @Insert("INSERT INTO reservations (user_id, seat_id, reserved_at, reserved_until) " +
+            "VALUES (#{userId}, #{seatId}, #{reservedAt}, #{reservedUntil})")
+    void createReservation(Reservation reservation);
+
+    @Delete("DELETE FROM reservations WHERE id = #{id}")
     void deleteReservation(int id);
-    List<Reservation> getUserReservations(int userId);
-    Reservation getActiveReservation(int userId);
+
+    @Update("UPDATE reservations SET reserved_until = #{newReservedUntil} WHERE id = #{reservationId}")
+    void updateReservationTime(@Param("reservationId") int reservationId, @Param("newReservedUntil") Timestamp newReservedUntil);
 }

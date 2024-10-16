@@ -1,21 +1,37 @@
-// src/router/index.js
-
 import { createRouter, createWebHistory } from 'vue-router';
-import LoginPage from '../components/Login.vue';
-import RegisterPage from '../components/Register.vue';  // 경로와 이름이 정확한지 확인
-import SeatsPage from '../components/Seats.vue';        // 경로와 이름이 정확한지 확인
-import ReservationPage from '../components/Reservation.vue'; // 경로와 이름이 정확한지 확인
+import HomePage from '../views/HomePage.vue';
+import UserLogin from '../components/UserLogin.vue';
+import UserSignup from '../components/UserSignup.vue';
+import SeatReservation from '../components/SeatReservation.vue';
 
+// 라우터 설정
 const routes = [
-  { path: '/login', component: LoginPage },
-  { path: '/register', component: RegisterPage },
-  { path: '/seats', component: SeatsPage },
-  { path: '/reservations', component: ReservationPage }
+    {
+        path: '/',
+        name: 'HomePage',
+        component: HomePage,
+    },
+    {
+        path: '/login',
+        name: 'UserLogin',
+        component: UserLogin,
+    },
+    {
+        path: '/signup',
+        name: 'UserSignup',
+        component: UserSignup,
+    },
+    {
+        path: '/seat-reservation',
+        name: 'SeatReservation',
+        component: SeatReservation,
+    },
 ];
 
+// 라우터 생성
 const router = createRouter({
-  history: createWebHistory(),
-  routes
+    history: createWebHistory(process.env.BASE_URL), // Vue 3에서는 createWebHistory 사용
+    routes,
 });
 
 export default router;

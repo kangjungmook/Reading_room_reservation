@@ -1,6 +1,5 @@
 package org.example.reading_room_reservation.entity;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,9 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    private Long id;
+    private int id;
     private String username;
     private String password;
     private String email;
 }
-
