@@ -28,7 +28,7 @@ export default {
       email: "",    // 사용자 이메일
       password: "", // 사용자 비밀번호
       message: "",  // 메시지
-    };
+    };  
   },
   methods: {
     async handleSubmit() {
@@ -42,7 +42,8 @@ export default {
             username: this.username,
             email: this.email,
             password: this.password,
-          }),
+            
+          }), 
         });
 
         if (!response.ok) {

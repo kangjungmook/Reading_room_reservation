@@ -14,6 +14,12 @@ public interface SeatMapper {
     @Select("SELECT * FROM seats WHERE id = #{id}")
     Seat getSeatById(int id);
 
-    @Update("UPDATE seats SET is_available = #{isAvailable} WHERE id = #{id}")
-    void updateSeatAvailability(@Param("id") int id, @Param("isAvailable") boolean isAvailable);
+    @Select("SELECT is_available FROM seats WHERE id = #{id}")
+    boolean getSeatAvailability(int id);  // 현재 좌석의 사용 가능 상태를 조회
+
+    @Update("UPDATE seats SET is_available = NOT is_available WHERE id = #{id}")
+    void toggleSeatAvailability(int id);  // 사용 가능 상태를 토글
+
+
+
 }

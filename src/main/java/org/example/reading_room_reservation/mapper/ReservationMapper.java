@@ -24,4 +24,12 @@ public interface ReservationMapper {
 
     @Update("UPDATE reservations SET reserved_until = #{newReservedUntil} WHERE id = #{reservationId}")
     void updateReservationTime(@Param("reservationId") int reservationId, @Param("newReservedUntil") Timestamp newReservedUntil);
+
+    // 사용자 ID로 예약 조회
+    @Select("SELECT * FROM reservations WHERE user_id = #{userId}")
+    List<Reservation> getReservationsByUserId(int userId);
+
+    // 좌석 ID로 예약 조회
+    @Select("SELECT * FROM reservations WHERE seat_id = #{seatId}")
+    List<Reservation> getReservationsBySeatId(int seatId);
 }

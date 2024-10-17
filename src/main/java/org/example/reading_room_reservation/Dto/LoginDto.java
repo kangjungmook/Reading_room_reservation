@@ -1,2 +1,9 @@
-package org.example.reading_room_reservation.Dto;public class LoginDto {
+package org.example.reading_room_reservation.Dto;
+
+import lombok.Data;
+
+@Data
+public class LoginDto {
+    private String email;
+    private String password;
 }

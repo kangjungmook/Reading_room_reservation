@@ -23,14 +23,14 @@ const routes = [
     },
     {
         path: '/seat-reservation',
-        name: 'SeatReservation',
+        name: 'SeatReservation',    
         component: SeatReservation,
     },
 ];
 
 // 라우터 생성
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL), // Vue 3에서는 createWebHistory 사용
+    history: createWebHistory(process.env.BASE_URL),  
     routes,
 });
 

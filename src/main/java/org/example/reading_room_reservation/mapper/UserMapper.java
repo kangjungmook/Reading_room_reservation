@@ -17,11 +17,7 @@ public interface UserMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void createUser(User user);
 
-    @Select("SELECT * FROM users WHERE username = #{username} AND password = #{password}")
-    User loginUser(@Param("username") String username, @Param("password") String password);
-
-    // UserMapper.java
-    @Select("SELECT * FROM users WHERE email = #{email}")
+    @Select("SELECT id, username, email, password FROM users WHERE email = #{email}")
     User getUserByEmail(String email);
 
 }
