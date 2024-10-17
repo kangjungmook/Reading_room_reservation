@@ -1,3 +1,4 @@
+#테이블
 ```sql
 -- 테이블 rrm.reservations 구조 내보내기
 CREATE TABLE IF NOT EXISTS `reservations` (
