@@ -8,7 +8,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Service
-public class    JwtServiceImpl implements JwtService {
+public class JwtServiceImpl implements JwtService {
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long expirationMs = 3600000; // 1시간
 

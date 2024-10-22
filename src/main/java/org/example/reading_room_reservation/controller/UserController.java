@@ -33,16 +33,17 @@ public class UserController {
         }
     }
 
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginDto loginDto) {
         String token = userService.loginUser(loginDto.getEmail(), loginDto.getPassword());
         if (token != null) {
-            User user = userService.getUserByEmail(loginDto.getEmail()); // 이메일로 사용자 정보 조회
-            if (user != null) { // user가 null인지 체크
+            User user = userService.getUserByEmail(loginDto.getEmail());
+            if (user != null) {
                 Map<String, Object> response = new HashMap<>();
-                response.put("token", token);         // JWT 토큰
-                response.put("name", user.getUsername()); // 사용자 이름
-                response.put("id", user.getId());     // 사용자 ID
+                response.put("token", token);
+                response.put("name", user.getUsername());
+                response.put("id", user.getId());
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "사용자 정보를 찾을 수 없습니다."));
@@ -51,7 +52,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "이메일 또는 비밀번호가 잘못되었습니다."));
         }
     }
-
 
     // 특정 회원 정보 조회
     @GetMapping("/{id}")

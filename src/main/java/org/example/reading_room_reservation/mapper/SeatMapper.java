@@ -9,9 +9,17 @@ import java.util.List;
 public interface SeatMapper {
 
     @Select("SELECT * FROM seats")
+    @Results({
+            @Result(property = "seatNumber", column = "seat_number"),
+            @Result(property = "isAvailable", column = "is_available")
+    })
     List<Seat> getAllSeats();
 
     @Select("SELECT * FROM seats WHERE id = #{id}")
+    @Results({
+            @Result(property = "seatNumber", column = "seat_number"),
+            @Result(property = "isAvailable", column = "is_available")
+    })
     Seat getSeatById(int id);
 
     @Select("SELECT is_available FROM seats WHERE id = #{id}")

@@ -1,7 +1,10 @@
 package org.example.reading_room_reservation.controller;
 
 import org.example.reading_room_reservation.entity.Reservation;
+import org.example.reading_room_reservation.entity.User;
+import org.example.reading_room_reservation.service.JwtService;
 import org.example.reading_room_reservation.service.ReservationService;
+import org.example.reading_room_reservation.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,12 @@ public class ReservationController {
 
     @Autowired
     private ReservationService reservationService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserService userService;
 
     // 모든 예약 조회
     @GetMapping
@@ -35,20 +44,36 @@ public class ReservationController {
 
     // 예약 추가
     @PostMapping
-    public ResponseEntity<String> createReservation(@RequestBody Reservation reservation) {
+    public ResponseEntity<String> createReservation(@RequestBody Reservation reservation,
+                                                    @RequestHeader("Authorization") String token) {
         try {
+            // JWT 토큰에서 사용자 정보 추출
+            String email = jwtService.getEmailFromToken(token.replace("Bearer ", ""));
+            User user = userService.getUserByEmail(email);
+
+            // 사용자 ID 설정
+            reservation.setUserId(user.getId());
             reservationService.createReservation(reservation);
             return ResponseEntity.status(HttpStatus.CREATED).body("예약이 성공적으로 생성되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 생성 실패: " + e.getMessage());
         }
     }
 
     // 예약 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable int id) {
-        reservationService.deleteReservation(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        try {
+            reservationService.deleteReservation(id);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            System.err.println("예약 삭제 중 오류 발생: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // 예약 시간 업데이트

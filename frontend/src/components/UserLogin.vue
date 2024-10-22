@@ -15,7 +15,7 @@
     <router-link to="/signup">회원가입 하시겠습니까?</router-link>
   </div>
 </template>
-
+  
 <script>
 import axios from 'axios';
 
@@ -71,7 +71,6 @@ export default {
       this.$router.push('/'); // 로그아웃 후 홈으로 리다이렉션
     },
     checkLoginStatus() {
-      // 로컬 스토리지에 토큰과 이름, ID가 있는지 확인
       const token = localStorage.getItem('token');
       const name = localStorage.getItem('name');
       const userId = localStorage.getItem('userId'); // 사용자 ID 추가 확인

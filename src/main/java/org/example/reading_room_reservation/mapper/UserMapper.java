@@ -19,5 +19,4 @@ public interface UserMapper {
 
     @Select("SELECT id, username, email, password FROM users WHERE email = #{email}")
     User getUserByEmail(String email);
-
 }

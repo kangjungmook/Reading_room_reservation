@@ -47,13 +47,12 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error('회원가입 실패'); // 에러 발생 시
+          throw new Error('회원가입 실패'); 
         }
 
         const data = await response.json();
         this.message = "회원가입 성공!";
-        console.log(data); // 성공 시 서버 응답 출력
-
+        console.log(data); 
 
         this.$router.push('/login'); 
       } catch (error) {
