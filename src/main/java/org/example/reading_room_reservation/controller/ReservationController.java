@@ -62,31 +62,6 @@ public class ReservationController {
         }
     }
 
-    // 예약 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable int id) {
-        try {
-            reservationService.deleteReservation(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        } catch (Exception e) {
-            System.err.println("예약 삭제 중 오류 발생: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    // 예약 시간 업데이트
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateReservationTime(@PathVariable int id, @RequestBody Timestamp newReservedUntil) {
-        try {
-            reservationService.updateReservationTime(id, newReservedUntil);
-            return ResponseEntity.ok("예약 시간이 성공적으로 업데이트되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
     // 사용자 ID로 예약 조회
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Reservation>> getReservationsByUserId(@PathVariable int userId) {
@@ -100,4 +75,5 @@ public class ReservationController {
         List<Reservation> reservations = reservationService.getReservationsBySeatId(seatId);
         return ResponseEntity.ok(reservations);
     }
+
 }

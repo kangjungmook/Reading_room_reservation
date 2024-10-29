@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.*;
 import org.example.reading_room_reservation.entity.Seat;
 
 import java.util.List;
-
 @Mapper
 public interface SeatMapper {
 
@@ -23,11 +22,11 @@ public interface SeatMapper {
     Seat getSeatById(int id);
 
     @Select("SELECT is_available FROM seats WHERE id = #{id}")
-    boolean getSeatAvailability(int id);  // 현재 좌석의 사용 가능 상태를 조회
+    Integer getSeatAvailability(int id);
 
-    @Update("UPDATE seats SET is_available = NOT is_available WHERE id = #{id}")
-    void toggleSeatAvailability(int id);  // 사용 가능 상태를 토글
+    @Update("UPDATE seats SET is_available = 0 WHERE id = #{id}")
+    void reserveSeat(int id);
 
-
-
+    @Update("UPDATE seats SET is_available = 1 WHERE id = #{id}")
+    void freeSeat(int id);
 }

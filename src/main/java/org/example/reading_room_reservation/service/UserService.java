@@ -12,10 +12,11 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
-    private JwtService jwtService; // JwtService 주입
+    private JwtService jwtService;
 
     public User getUserById(int id) {
         return userMapper.getUserById(id);
+
     }
 
     public User getUserByEmail(String email) {

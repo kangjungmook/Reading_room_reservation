@@ -43,42 +43,43 @@ export default {
         // 토큰과 이름, ID 저장
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('name', response.data.name);
-        localStorage.setItem('userId', response.data.id); // 사용자 ID 저장
+        localStorage.setItem('userId', response.data.id); 
         
         // 로그인 상태 업데이트
         this.isLoggedIn = true;
         this.userName = response.data.name;
-        this.userId = response.data.id; // 사용자 ID 업데이트
+        this.userId = response.data.id; 
         
         alert('로그인 성공!');
-        this.$router.push('/'); // 성공 시 홈으로 리다이렉션
+        this.$router.push('/');
+      
       } catch (error) {
-        alert('로그인 실패: ' + error.response.data.message); // 오류 메시지 수정
+        alert('로그인 실패: ' + error.response.data.message); 
       }
     },
     logout() {
       // 로컬 스토리지에서 정보 삭제
       localStorage.removeItem('token');
       localStorage.removeItem('name');
-      localStorage.removeItem('userId'); // 사용자 ID 삭제
+      localStorage.removeItem('userId');
 
       // 로그인 상태 업데이트
       this.isLoggedIn = false;
       this.userName = '';
-      this.userId = ''; // 사용자 ID 초기화
+      this.userId = '';
       
       alert('로그아웃 성공!');
-      this.$router.push('/'); // 로그아웃 후 홈으로 리다이렉션
+      this.$router.push('/'); 
     },
     checkLoginStatus() {
       const token = localStorage.getItem('token');
       const name = localStorage.getItem('name');
-      const userId = localStorage.getItem('userId'); // 사용자 ID 추가 확인
+      const userId = localStorage.getItem('userId'); 
 
       if (token && name && userId) {
         this.isLoggedIn = true;
         this.userName = name;
-        this.userId = userId; // 사용자 ID 업데이트
+        this.userId = userId; 
       }
     }
   },

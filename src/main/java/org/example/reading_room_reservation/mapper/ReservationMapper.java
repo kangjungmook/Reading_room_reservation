@@ -31,5 +31,9 @@ public interface ReservationMapper {
 
     // 좌석 ID로 예약 조회
     @Select("SELECT * FROM reservations WHERE seat_id = #{seatId}")
+
     List<Reservation> getReservationsBySeatId(int seatId);
-}
+    // 예약 취소
+    @Update("UPDATE reservations SET is_canceled = 1 WHERE id = #{id}")
+        void cancelReservation(int id);
+    }

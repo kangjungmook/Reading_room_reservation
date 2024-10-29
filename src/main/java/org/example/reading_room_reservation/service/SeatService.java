@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 @Service
 public class SeatService {
 
@@ -23,12 +22,16 @@ public class SeatService {
         return seatMapper.getSeatById(id);
     }
 
-    // 좌석 예약 가능 상태를 토글
+    // 좌석 예약 가능 상태를 변경
     public void toggleSeatAvailability(int id) {
         // 현재 좌석의 사용 가능 상태를 조회
-        boolean isAvailable = seatMapper.getSeatAvailability(id);
+        int isAvailable = seatMapper.getSeatAvailability(id);
 
-        // 현재 상태를 토글하여 업데이트
-        seatMapper.toggleSeatAvailability(id);
+        // 사용 가능 상태에 따라 업데이트
+        if (isAvailable == 1) {
+            seatMapper.reserveSeat(id); // 좌석 예약 중으로 설정
+        } else {
+            seatMapper.freeSeat(id); // 좌석 사용 가능으로 설정
+        }
     }
 }

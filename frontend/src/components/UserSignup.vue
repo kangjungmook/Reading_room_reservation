@@ -33,7 +33,7 @@ export default {
   methods: {
     async handleSubmit() {
       try {
-        const response = await fetch("/api/users/signup", { // 서버 API 엔드포인트
+        const response = await fetch("/api/users/signup", { 
           method: "POST",
           headers: {
             "Content-Type": "application/json",

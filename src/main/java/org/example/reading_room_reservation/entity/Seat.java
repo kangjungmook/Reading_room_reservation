@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class Seat {
     private int id;
     private String seatNumber;
-    private boolean isAvailable;
+    private int isAvailable;
 }
