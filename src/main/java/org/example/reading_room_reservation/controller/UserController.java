@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,9 +19,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private JwtService jwtService;
 
     // 회원 가입
     @PostMapping("/signup")
@@ -39,28 +37,19 @@ public class UserController {
         String token = userService.loginUser(loginDto.getEmail(), loginDto.getPassword());
         if (token != null) {
             User user = userService.getUserByEmail(loginDto.getEmail());
-            if (user != null) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("token", token);
-                response.put("name", user.getUsername());
-                response.put("id", user.getId());
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "사용자 정보를 찾을 수 없습니다."));
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "이메일 또는 비밀번호가 잘못되었습니다."));
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("name", user.getUsername());
+            response.put("id", user.getId());
+            return ResponseEntity.ok(response);
         }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "이메일 또는 비밀번호가 잘못되었습니다."));
     }
 
     // 특정 회원 정보 조회
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable int id) {
+    public ResponseEntity<User> getUserById(@PathVariable int id) {
         User user = userService.getUserById(id);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자 없음");
-        }
+        return ResponseEntity.of(Optional.ofNullable(user));
     }
 }

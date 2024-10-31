@@ -3,7 +3,6 @@ package org.example.reading_room_reservation.mapper;
 import org.apache.ibatis.annotations.*;
 import org.example.reading_room_reservation.entity.Reservation;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
@@ -19,21 +18,12 @@ public interface ReservationMapper {
             "VALUES (#{userId}, #{seatId}, #{reservedAt}, #{reservedUntil})")
     void createReservation(Reservation reservation);
 
-    @Delete("DELETE FROM reservations WHERE id = #{id}")
-    void deleteReservation(int id);
-
-    @Update("UPDATE reservations SET reserved_until = #{newReservedUntil} WHERE id = #{reservationId}")
-    void updateReservationTime(@Param("reservationId") int reservationId, @Param("newReservedUntil") Timestamp newReservedUntil);
-
-    // 사용자 ID로 예약 조회
     @Select("SELECT * FROM reservations WHERE user_id = #{userId}")
     List<Reservation> getReservationsByUserId(int userId);
 
-    // 좌석 ID로 예약 조회
-    @Select("SELECT * FROM reservations WHERE seat_id = #{seatId}")
+    @Delete("DELETE FROM reservations WHERE id = #{id}")
+    void deleteReservation(int id);
 
-    List<Reservation> getReservationsBySeatId(int seatId);
-    // 예약 취소
-    @Update("UPDATE reservations SET is_canceled = 1 WHERE id = #{id}")
-        void cancelReservation(int id);
-    }
+    @Delete("DELETE FROM reservations WHERE seat_id = #{seatId}")
+    void deleteReservationBySeatId(int seatId);
+}

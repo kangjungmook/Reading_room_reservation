@@ -4,29 +4,17 @@ import org.apache.ibatis.annotations.*;
 import org.example.reading_room_reservation.entity.Seat;
 
 import java.util.List;
+
 @Mapper
 public interface SeatMapper {
 
-    @Select("SELECT * FROM seats")
-    @Results({
-            @Result(property = "seatNumber", column = "seat_number"),
-            @Result(property = "isAvailable", column = "is_available")
-    })
+    @Select("SELECT id, seat_number AS seatNumber, is_available AS isAvailable FROM seats") // seatNumber 필드 추가
     List<Seat> getAllSeats();
 
-    @Select("SELECT * FROM seats WHERE id = #{id}")
-    @Results({
-            @Result(property = "seatNumber", column = "seat_number"),
-            @Result(property = "isAvailable", column = "is_available")
-    })
+    @Select("SELECT id, seat_number AS seatNumber, is_available AS isAvailable FROM seats WHERE id = #{id}")
     Seat getSeatById(int id);
 
-    @Select("SELECT is_available FROM seats WHERE id = #{id}")
-    Integer getSeatAvailability(int id);
+    @Update("UPDATE seats SET is_available = #{isAvailable} WHERE id = #{id}")
+    void updateSeat(Seat seat);
 
-    @Update("UPDATE seats SET is_available = 0 WHERE id = #{id}")
-    void reserveSeat(int id);
-
-    @Update("UPDATE seats SET is_available = 1 WHERE id = #{id}")
-    void freeSeat(int id);
 }

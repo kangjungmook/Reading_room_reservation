@@ -5,8 +5,11 @@ import org.example.reading_room_reservation.entity.Reservation;
 import org.example.reading_room_reservation.service.SeatService;
 import org.example.reading_room_reservation.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -25,37 +28,39 @@ public class SeatController {
     }
 
     @GetMapping("/{id}")
-    public Seat getSeatById(@PathVariable int id) {
-        return seatService.getSeatById(id);
+    public ResponseEntity<Seat> getSeatById(@PathVariable int id) {
+        Seat seat = seatService.getSeatById(id);
+        return ResponseEntity.ok(seat);
     }
 
-
-    //좌석예약
     @PostMapping("/{id}/reserve")
     public ResponseEntity<String> reserveSeat(@PathVariable int id, @RequestBody Reservation reservation) {
         try {
             Seat seat = seatService.getSeatById(id);
-            if (seat.getIsAvailable() != 1) {  // 예약 가능 여부 확인
+            if (seat.getIsAvailable() != 1) {
                 return ResponseEntity.badRequest().body("해당 좌석은 이미 예약되었습니다.");
+
             }
-
-            // 예약 생성
             reservation.setSeatId(id);
+            reservation.setReservedAt(new Timestamp(System.currentTimeMillis())); // 현재 시간
+            reservation.setReservedUntil(new Timestamp(System.currentTimeMillis() + 3600000)); // 1시간 후
+
             reservationService.createReservation(reservation);
-
-            // 좌석의 사용 가능 상태를 변경
             seatService.toggleSeatAvailability(id);
-
             return ResponseEntity.ok("좌석 예약이 성공적으로 완료되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 실패: " + e.getMessage());
         }
     }
 
-    // 좌석의 예약 가능 상태를 토글
-    @PostMapping("/{id}/toggle")
-    public ResponseEntity<String> toggleSeat(@PathVariable int id) {
-        seatService.toggleSeatAvailability(id);
-        return ResponseEntity.ok("좌석 상태가 변경되었습니다.");
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<String> cancelSeatReservation(@PathVariable int id) {
+        try {
+            reservationService.cancelReservationBySeatId(id);
+            seatService.freeSeat(id);
+            return ResponseEntity.ok("좌석 예약이 성공적으로 취소되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 취소 실패: " + e.getMessage());
+        }
     }
 }

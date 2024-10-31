@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -37,9 +37,7 @@ public class ReservationController {
     @GetMapping("/{id}")
     public ResponseEntity<Reservation> getReservationById(@PathVariable int id) {
         Reservation reservation = reservationService.getReservationById(id);
-        return reservation != null
-                ? ResponseEntity.ok(reservation)
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        return ResponseEntity.of(Optional.ofNullable(reservation));
     }
 
     // 예약 추가
@@ -47,18 +45,38 @@ public class ReservationController {
     public ResponseEntity<String> createReservation(@RequestBody Reservation reservation,
                                                     @RequestHeader("Authorization") String token) {
         try {
-            // JWT 토큰에서 사용자 정보 추출
             String email = jwtService.getEmailFromToken(token.replace("Bearer ", ""));
             User user = userService.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
+            }
 
-            // 사용자 ID 설정
+            // 좌석 유효성 검사
+            if (!isValidSeat(reservation.getSeatId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유효하지 않은 좌석입니다.");
+            }
+
             reservation.setUserId(user.getId());
             reservationService.createReservation(reservation);
             return ResponseEntity.status(HttpStatus.CREATED).body("예약이 성공적으로 생성되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 생성 실패: " + e.getMessage());
+        }
+    }
+
+    // 좌석 유효성 검사 메서드
+    private boolean isValidSeat(int seatId) {
+        return reservationService.isSeatAvailable(seatId); // 좌석이 사용 가능한지 확인
+    }
+
+    // 예약 취소
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteReservation(@PathVariable int id) {
+        try {
+            reservationService.cancelReservation(id);
+            return ResponseEntity.ok("예약이 성공적으로 취소되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 취소 실패: " + e.getMessage());
         }
     }
 
@@ -68,12 +86,4 @@ public class ReservationController {
         List<Reservation> reservations = reservationService.getReservationsByUserId(userId);
         return ResponseEntity.ok(reservations);
     }
-
-    // 좌석 ID로 예약 조회
-    @GetMapping("/seat/{seatId}")
-    public ResponseEntity<List<Reservation>> getReservationsBySeatId(@PathVariable int seatId) {
-        List<Reservation> reservations = reservationService.getReservationsBySeatId(seatId);
-        return ResponseEntity.ok(reservations);
-    }
-
 }

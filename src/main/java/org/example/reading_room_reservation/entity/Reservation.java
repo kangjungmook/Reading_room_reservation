@@ -15,4 +15,5 @@ public class Reservation {
     private int seatId; // 예약하는 좌석 ID
     private Timestamp reservedAt; // 예약 시간
     private Timestamp reservedUntil; // 예약 종료 시간
+    private boolean isActive; // 예약 활성 상태 (true: 활성, false: 비활성)
 }

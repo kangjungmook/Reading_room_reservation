@@ -2,6 +2,7 @@ package org.example.reading_room_reservation.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.example.reading_room_reservation.entity.User;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -13,12 +14,12 @@ public class JwtServiceImpl implements JwtService {
     private final long expirationMs = 3600000; // 1시간
 
     @Override
-    public String getToken(String email) {
+    public String generateToken(User user) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(user.getEmail()) // 이메일을 subject로 사용
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(secretKey)
