@@ -1,6 +1,6 @@
 # 테이블
 ```sql
--- 테이블 rrm.reservations 구조 내보내기
+-- 테이블 rrm.reservations
 CREATE TABLE IF NOT EXISTS `reservations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -14,9 +14,7 @@ CREATE TABLE IF NOT EXISTS `reservations` (
   CONSTRAINT `FK__users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 내보낼 데이터가 선택되어 있지 않습니다.
-
--- 테이블 rrm.seats 구조 내보내기
+-- 테이블 rrm.seats 
 CREATE TABLE IF NOT EXISTS `seats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `seat_number` varchar(10) NOT NULL DEFAULT '',
@@ -25,9 +23,7 @@ CREATE TABLE IF NOT EXISTS `seats` (
   UNIQUE KEY `seat_number` (`seat_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 내보낼 데이터가 선택되어 있지 않습니다.
-
--- 테이블 rrm.users 구조 내보내기
+-- 테이블 rrm.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
