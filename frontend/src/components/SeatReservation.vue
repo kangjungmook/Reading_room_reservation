@@ -12,15 +12,19 @@
           }"
           @click="selectSeat(seat)"
         >
-          {{ seat.seatNumber || 'N/A' }}
+          {{ seat.seatNumber || "N/A" }}
         </div>
       </div>
     </div>
 
-    <button @click="cancelReservation" :disabled="!selectedSeat || !selectedSeat.reservedBy">예약 취소하기</button>
+    <button
+      @click="cancelReservation"
+      :disabled="!selectedSeat || selectedSeat.reservedBy !== userId"
+    >
+      예약 취소하기
+    </button>
     <p v-if="message">{{ message }}</p>
 
-    <!-- Reservation Modal -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
@@ -43,124 +47,133 @@
 export default {
   data() {
     return {
-      seats: [],
-      selectedSeat: null,
-      message: "",
-      showModal: false,
-      reservationDuration: 1,
-      remainingTime: 0,
-      userId: localStorage.getItem("userId"), // Get userId from localStorage
+      seats: [], // 좌석 정보
+      selectedSeat: null, // 선택된 좌석
+      userReservation: null, // 사용자의 기존 예약
+      message: "", // 알림 메시지
+      showModal: false, // 모달 표시 여부
+      reservationDuration: 1, // 예약 시간
+      remainingTime: 0, // 남은 시간
+      userId: localStorage.getItem("userId"), // 로컬 스토리지에서 사용자 ID 가져오기
     };
   },
   async mounted() {
-    console.log("컴포넌트가 마운트되었습니다. 좌석을 불러오는 중...");
     await this.fetchSeats();
+    await this.checkUserReservation(); // 사용자의 기존 예약 확인
   },
   watch: {
     reservationDuration(newVal) {
-      this.calculateRemainingTime(newVal);
+      this.remainingTime = newVal;
     },
   },
   methods: {
+    // 좌석 정보 가져오기
     async fetchSeats() {
       try {
         const response = await fetch("/api/seats");
         if (!response.ok) throw new Error("좌석 정보를 불러올 수 없습니다.");
         this.seats = await response.json();
-        console.log("좌석이 성공적으로 불러와졌습니다:", this.seats);
       } catch (error) {
         this.message = error.message;
-        console.error("Fetch error:", error);
       }
     },
+
+    // 사용자의 기존 예약 확인
+    async checkUserReservation() {
+      try {
+        const response = await fetch(`/api/users/${this.userId}/reservations`);
+        if (!response.ok) throw new Error("사용자 예약 정보를 불러올 수 없습니다.");
+        const reservations = await response.json();
+
+        // 사용자 예약 정보 설정 (1개의 좌석만 허용)
+        this.userReservation = reservations.length > 0 ? reservations[0] : null;
+
+        if (this.userReservation) {
+          this.message = `이미 예약된 좌석이 있습니다: ${this.userReservation.seatNumber}`;
+        }
+      } catch (error) {
+        this.message = "기존 예약 확인 중 오류가 발생했습니다: " + error.message;
+      }
+    },
+
+    // 좌석 선택
     selectSeat(seat) {
+      console.log("선택된 좌석:", seat); // 선택된 좌석 정보 확인
+      console.log("좌석 사용 가능 여부:", seat.isAvailable); // 해당 좌석의 사용 가능 여부 확인
+      console.log("예약된 사용자:", seat.reservedBy); // 좌석을 예약한 사용자 확인
+
+      if (this.userReservation && this.userReservation.seatId !== seat.id) {
+        this.message = "이미 예약된 좌석이 있습니다. 취소 후 다시 시도해주세요.";
+        console.log("이미 예약된 좌석입니다.");
+        return;
+      }
+
       if (seat.isAvailable === 0 && seat.reservedBy !== this.userId) {
         this.message = "이미 다른 사용자가 예약한 좌석입니다.";
-        console.warn("이미 예약된 좌석을 선택하려고 시도했습니다.");
-        return; // 선택하지 않고 메서드 종료
+        console.log("다른 사용자가 예약한 좌석입니다.");
+        return;
       }
 
-      // 이미 선택된 좌석이 있는 경우 선택 해제
-      if (this.selectedSeat) {
-        this.selectedSeat.selected = false; // 이전 선택 해제
+      // 예약된 사용자 정보가 없는 경우를 대비하여 조건 추가
+      if (seat.reservedBy === undefined || seat.reservedBy === null) {
+        console.log("예약된 사용자 없음");
       }
 
-      this.selectedSeat = seat; // 새로 선택된 좌석 저장
-
-      // Show modal only if the seat is available or reserved by the user
-      if (seat.isAvailable === 1 || seat.reservedBy === this.userId) {
-        this.showModal = true; // 모달 열기
-      }
+      this.selectedSeat = seat;
+      this.showModal = true;
+      console.log("선택된 좌석:", this.selectedSeat); // 선택된 좌석 정보 출력
     },
-    calculateRemainingTime(duration) {
-      this.remainingTime = duration; // 남은 시간 계산
-    },
+
+    // 예약 확인 및 요청
     async confirmReservation() {
-      // Check if a seat is selected
-      if (!this.selectedSeat) {
-        this.message = "좌석을 선택해주세요.";
+      console.log("예약 확인 시작");
+      console.log("선택된 좌석:", this.selectedSeat); // 선택된 좌석 정보 확인
+      console.log("예약 시간:", this.reservationDuration); // 예약 시간 확인
+      console.log("사용자 ID:", this.userId); // 사용자 ID 확인
+
+      if (!this.selectedSeat || this.reservationDuration < 1 || !this.userId) {
+        this.message = "좌석 및 예약 시간을 확인 후 진행해주세요.";
+        console.log("좌석 또는 예약 시간 오류");
         return;
       }
 
-      if (this.reservationDuration < 1) {
-        this.message = "유효한 시간을 입력해주세요.";
+      if (this.userReservation) {
+        this.message = "이미 예약된 좌석이 있습니다. 취소 후 다시 시도해주세요.";
+        console.log("이미 예약된 좌석이 있습니다.");
         return;
       }
 
-      if (!this.userId) {
-        this.message = "로그인 후 예약을 진행해주세요.";
-        console.warn("로컬 스토리지에서 사용자 ID를 찾을 수 없습니다.");
-        return;
-      }
-
-      // Check if the user already has a reservation
-      const userHasReservation = await this.checkUserReservation(this.userId);
-      if (userHasReservation) {
-        this.message = "이미 예약된 좌석이 있습니다. 예약 취소 후 다시 시도해주세요.";
-        return;
-      }
-
-      this.reserveSeats(this.userId, this.selectedSeat.id, this.reservationDuration);
+      await this.reserveSeat();
       this.closeModal();
     },
-    async checkUserReservation(userId) {
+    // 좌석 예약
+    async reserveSeat() {
       try {
-        const response = await fetch(`/api/users/${userId}/reservations`);
-        if (!response.ok) throw new Error("예약 정보를 불러올 수 없습니다.");
-        const reservations = await response.json();
-        return reservations.length > 0; // 예약이 있으면 true
-      } catch (error) {
-        console.error("예약 확인 오류:", error);
-        return false; // 오류 발생 시 예약이 없는 것으로 간주
-      }
-    },
-    async reserveSeats(userId, seatId, duration) {
-      try {
-        const response = await fetch(`/api/seats/${seatId}/reserve`, {
+        const response = await fetch(`/api/seats/${this.selectedSeat.id}/reserve`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, duration }),
+          body: JSON.stringify({
+            userId: this.userId,
+            duration: this.reservationDuration,
+          }),
         });
 
-        if (!response.ok) throw new Error("예약에 실패했습니다.");
+        if (!response.ok) throw new Error("좌석 예약에 실패했습니다.");
+        this.message = "좌석 예약이 완료되었습니다.";
 
-        this.message = "예약이 완료되었습니다.";
-        console.log("예약이 성공적으로 완료되었습니다:", seatId);
-        await this.fetchSeats(); // 좌석 상태 업데이트
+        // 예약 성공 후 상태 갱신
+        await this.fetchSeats();
+        await this.checkUserReservation();
       } catch (error) {
-        this.message = "예약에 실패했습니다: " + error.message;
-        console.error("예약 오류:", error);
+        this.message = "좌석 예약 중 오류가 발생했습니다: " + error.message;
       }
     },
-    async cancelReservation() {
-      if (!this.selectedSeat) {
-        this.message = "취소할 예약을 선택해주세요.";
-        return;
-      }
 
-      // Check if the selected seat is reserved by the current user
-      if (this.selectedSeat.reservedBy !== this.userId) {
-        this.message = "이 좌석은 다른 사용자에 의해 예약되었습니다. 취소할 수 없습니다.";
+    // 예약 취소
+    async cancelReservation() {
+      // 좌석을 선택한 상태여야 하고, 선택된 좌석이 예약된 좌석이어야 함
+      if (!this.selectedSeat || this.selectedSeat.reservedBy !== this.userId) {
+        this.message = "취소할 예약을 선택하거나 자신의 예약만 취소할 수 있습니다.";
         return;
       }
 
@@ -172,27 +185,23 @@ export default {
         });
 
         if (!response.ok) throw new Error("예약 취소에 실패했습니다.");
-
         this.message = "예약이 취소되었습니다.";
-        console.log("예약이 성공적으로 취소되었습니다:", this.selectedSeat.id);
-        await this.fetchSeats(); // 좌석 상태 업데이트
-        this.closeModal(); // 모달 닫기
+
+        // 상태 초기화
+        await this.fetchSeats();
+        await this.checkUserReservation(); // 예약 정보를 새로고침
+        this.selectedSeat = null; // 선택된 좌석 초기화
       } catch (error) {
-        this.message = "예약 취소에 실패했습니다: " + error.message;
-        console.error("취소 오류:", error);
+        this.message = "예약 취소 중 오류가 발생했습니다: " + error.message;
       }
     },
+
+    // 모달 닫기
     closeModal() {
       this.showModal = false;
-      this.selectedSeat = null; // 선택된 좌석 초기화
-      this.reservationDuration = 1; // 예약 시간 초기화
-      this.remainingTime = 0; // 남은 시간 초기화
-      
-   
-   
-   
-   
-   
+      this.selectedSeat = null;
+      this.reservationDuration = 1;
+      this.remainingTime = 0;
     },
   },
 };
@@ -240,7 +249,7 @@ export default {
   background-color: rgba(0, 0, 0, 0.5);
 }
 .modal-content {
-  background-color: white;
+  background-color: white;  
   padding: 20px;
   border-radius: 5px;
   text-align: center;

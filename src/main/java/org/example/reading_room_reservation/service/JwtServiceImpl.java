@@ -11,7 +11,7 @@ import java.util.Date;
 @Service
 public class JwtServiceImpl implements JwtService {
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long expirationMs = 3600000; // 1시간
+    private final long expirationMs = 3600000;
 
     @Override
     public String generateToken(User user) {
@@ -19,7 +19,7 @@ public class JwtServiceImpl implements JwtService {
         Date expiration = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
-                .setSubject(user.getEmail()) // 이메일을 subject로 사용
+                .setSubject(user.getEmail())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(secretKey)

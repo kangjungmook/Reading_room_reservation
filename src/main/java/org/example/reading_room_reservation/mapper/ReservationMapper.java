@@ -26,4 +26,8 @@ public interface ReservationMapper {
 
     @Delete("DELETE FROM reservations WHERE seat_id = #{seatId}")
     void deleteReservationBySeatId(int seatId);
+
+    @Select("SELECT COUNT(*) FROM reservations WHERE user_id = #{userId} AND seat_id = #{seatId}")
+    int countUserReservationsForSeat(@Param("userId") int userId, @Param("seatId") int seatId);
+
 }

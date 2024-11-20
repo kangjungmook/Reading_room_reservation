@@ -11,4 +11,5 @@ public class Seat {
     private int id;
     private String seatNumber;
     private int isAvailable;
+    private Integer reservedBy;
 }

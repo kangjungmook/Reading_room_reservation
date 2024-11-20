@@ -1,8 +1,10 @@
 package org.example.reading_room_reservation.controller;
 
 import org.example.reading_room_reservation.Dto.LoginDto;
+import org.example.reading_room_reservation.entity.Reservation;
 import org.example.reading_room_reservation.entity.User;
 import org.example.reading_room_reservation.service.JwtService;
+import org.example.reading_room_reservation.service.ReservationService;
 import org.example.reading_room_reservation.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -19,6 +22,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ReservationService reservationService;
+
 
     // 회원 가입
     @PostMapping("/signup")
@@ -52,4 +59,15 @@ public class UserController {
         User user = userService.getUserById(id);
         return ResponseEntity.of(Optional.ofNullable(user));
     }
+
+    @GetMapping("/{userId}/reservations")
+    public ResponseEntity<List<Reservation>> getReservationsByUserId(@PathVariable int userId) {
+        List<Reservation> reservations = reservationService.getReservationsByUserId(userId);
+
+        if (reservations.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(reservations);
+        }
+        return ResponseEntity.ok(reservations);
+    }
+
 }

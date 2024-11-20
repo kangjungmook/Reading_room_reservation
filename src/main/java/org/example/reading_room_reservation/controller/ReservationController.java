@@ -56,9 +56,18 @@ public class ReservationController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유효하지 않은 좌석입니다.");
             }
 
+            // 사용자의 해당 좌석 중복 예약 검사
+            int reservationCount = reservationService.countUserReservationsForSeat(user.getId(), reservation.getSeatId());
+            if (reservationCount > 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 좌석은 이미 예약되어 있습니다.");
+            }
+
             reservation.setUserId(user.getId());
             reservationService.createReservation(reservation);
+
             return ResponseEntity.status(HttpStatus.CREATED).body("예약이 성공적으로 생성되었습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 생성 실패: " + e.getMessage());
         }
@@ -66,7 +75,7 @@ public class ReservationController {
 
     // 좌석 유효성 검사 메서드
     private boolean isValidSeat(int seatId) {
-        return reservationService.isSeatAvailable(seatId); // 좌석이 사용 가능한지 확인
+        return reservationService.isSeatAvailable(seatId);
     }
 
     // 예약 취소
