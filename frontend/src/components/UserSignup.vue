@@ -1,22 +1,22 @@
 <template>
-  <div class="signup">
-    <h2>회원가입</h2>
-    <form @submit.prevent="handleSubmit">
-      <div>
-        <label for="username">사용자 이름:</label>
-        <input type="text" v-model="username" required />
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">회원가입</h2>
+    <form @submit.prevent="signup">
+      <div class="mb-3">
+        <label for="username" class="form-label">사용자 이름</label>
+        <input type="text" class="form-control" id="username" v-model="username" required />
       </div>
-      <div>
-        <label for="email">이메일:</label>
-        <input type="email" v-model="email" required />
+      <div class="mb-3">
+        <label for="email" class="form-label">이메일</label>
+        <input type="email" class="form-control" id="email" v-model="email" required />
       </div>
-      <div>
-        <label for="password">비밀번호:</label>
-        <input type="password" v-model="password" required />
+      <div class="mb-3">
+        <label for="password" class="form-label">비밀번호</label>
+        <input type="password" class="form-control" id="password" v-model="password" required />
       </div>
-      <button type="submit">가입하기</button>
+      <button type="submit" class="btn btn-primary">가입하기</button>
     </form>
-    <p v-if="message">{{ message }}</p>
+    <p v-if="message" class="mt-3 text-center text-danger">{{ message }}</p>
   </div>
 </template>
 
@@ -24,40 +24,35 @@
 export default {
   data() {
     return {
-      username: "", // 사용자 이름
-      email: "",    // 사용자 이메일
-      password: "", // 사용자 비밀번호
-      message: "",  // 메시지
-    };  
+      username: '',
+      email: '',
+      password: '',
+      message: '',
+    };
   },
   methods: {
-    async handleSubmit() {
+    async signup() {
       try {
-        const response = await fetch("/api/users/signup", { 
-          method: "POST",
+        const response = await fetch('/api/users/signup', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             username: this.username,
             email: this.email,
             password: this.password,
-            
-          }), 
+          }),
         });
 
         if (!response.ok) {
-          throw new Error('회원가입 실패'); 
+          throw new Error('회원가입 실패');
         }
 
-        const data = await response.json();
-        this.message = "회원가입 성공!";
-        console.log(data); 
-
-        this.$router.push('/login'); 
+        this.message = '회원가입 성공!';
+        this.$router.push('/login');
       } catch (error) {
         this.message = error.message;
-        console.error('Error:', error);
       }
     },
   },
@@ -65,8 +60,11 @@ export default {
 </script>
 
 <style scoped>
-.signup {
+h2 {
+  font-size: 2rem;
+}
+form {
   max-width: 400px;
-  margin: auto;
+  margin: 0 auto;
 }
 </style>

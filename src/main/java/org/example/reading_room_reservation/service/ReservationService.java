@@ -27,21 +27,24 @@ public class ReservationService {
     }
 
     // 예약 추가
-    public String createReservation(Reservation reservation) {
-        List<Reservation> existingReservations = reservationMapper.getReservationsByUserId(reservation.getUserId());
-        if (!existingReservations.isEmpty()) {
-            return "해당 사용자는 이미 예약이 있습니다.";
+    public boolean createReservation(Reservation reservation) {
+        // 사용자가 활성 상태로 해당 좌석을 이미 예약했는지 체크
+        int reservationCount = reservationMapper.countUserReservationsForSeat(reservation.getUserId(), reservation.getSeatId());
+        if (reservationCount > 0) {
+            return false;  // 이미 예약된 경우
         }
 
         // 좌석 유효성 검사
         if (!isSeatAvailable(reservation.getSeatId())) {
-            return "해당 좌석은 이미 예약되었습니다.";
+            return false;  // 좌석이 이미 예약된 경우
         }
 
         // 예약 생성
         reservationMapper.createReservation(reservation);
-        return "예약이 성공적으로 생성되었습니다.";
+        return true;  // 예약 성공
     }
+
+
 
     // 사용자 ID로 예약 조회
     public List<Reservation> getReservationsByUserId(int userId) {

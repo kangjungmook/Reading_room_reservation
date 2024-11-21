@@ -1,21 +1,29 @@
 <template>
-  <div class="login-page">
-    <h2>로그인</h2>
-    <form @submit.prevent="login" v-if="!isLoggedIn">
-      <input type="email" v-model="email" placeholder="이메일" required />
-      <input type="password" v-model="password" placeholder="비밀번호" required />
-      <button type="submit">로그인</button>
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">로그인</h2>
+    <form @submit.prevent="login">
+      <div class="mb-3">
+        <label for="email" class="form-label">이메일</label>
+        <input type="email" class="form-control" id="email" v-model="email" required />
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">비밀번호</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          v-model="password"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-success">로그인</button>
     </form>
-
-    <div v-else>
-      <p>환영합니다, {{ userName }}!</p>
-      <button @click="logout">로그아웃</button>
-    </div>
-
-    <router-link to="/signup">회원가입 하시겠습니까?</router-link>
+    <p class="mt-3">
+      회원가입이 필요하신가요? <router-link to="/signup">회원가입</router-link>
+    </p>
+    <p v-if="errorMessage" class="text-danger">{{ errorMessage }}</p>
   </div>
 </template>
-  
 <script>
 import axios from 'axios';
 
@@ -26,11 +34,11 @@ export default {
       password: '',
       isLoggedIn: false,
       userName: '',
-      userId: '', // 사용자 ID 저장
+      userId: '', 
     };
   },
   mounted() {
-    this.checkLoginStatus(); // 페이지 로드 시 로그인 상태 확인
+    this.checkLoginStatus();
   },
   methods: {
     async login() {
@@ -85,26 +93,12 @@ export default {
   },
 };
 </script>
-
 <style scoped>
-.login-page {
+h2 {
+  font-size: 2rem;
+}
+form {
   max-width: 400px;
   margin: 0 auto;
-}
-
-input {
-  display: block;
-  margin: 10px 0;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-button {
-  margin-top: 10px;
-}
-
-p {
-  font-size: 1.2em;
 }
 </style>

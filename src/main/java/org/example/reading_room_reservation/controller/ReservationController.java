@@ -51,37 +51,44 @@ public class ReservationController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
             }
 
-            // 좌석 유효성 검사
-            if (!isValidSeat(reservation.getSeatId())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유효하지 않은 좌석입니다.");
-            }
-
-            // 사용자의 해당 좌석 중복 예약 검사
-            int reservationCount = reservationService.countUserReservationsForSeat(user.getId(), reservation.getSeatId());
-            if (reservationCount > 0) {
+            // 예약 처리
+            boolean reservationCreated = reservationService.createReservation(reservation);
+            if (!reservationCreated) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 좌석은 이미 예약되어 있습니다.");
             }
 
-            reservation.setUserId(user.getId());
-            reservationService.createReservation(reservation);
-
             return ResponseEntity.status(HttpStatus.CREATED).body("예약이 성공적으로 생성되었습니다.");
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예약 생성 실패: " + e.getMessage());
         }
     }
 
-    // 좌석 유효성 검사 메서드
-    private boolean isValidSeat(int seatId) {
-        return reservationService.isSeatAvailable(seatId);
-    }
 
     // 예약 취소
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteReservation(@PathVariable int id) {
+    public ResponseEntity<String> deleteReservation(
+            @PathVariable int id,
+            @RequestHeader("Authorization") String token) {
         try {
+            // 토큰에서 이메일 추출
+            String email = jwtService.getEmailFromToken(token.replace("Bearer ", ""));
+            User user = userService.getUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
+            }
+
+            // 예약 정보 확인
+            Reservation reservation = reservationService.getReservationById(id);
+            if (reservation == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 예약을 찾을 수 없습니다.");
+            }
+
+            // 로그인한 사용자와 예약자 비교
+            if (reservation.getUserId() != user.getId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인이 예약한 좌석만 취소할 수 있습니다.");
+            }
+
+            // 예약 취소 처리
             reservationService.cancelReservation(id);
             return ResponseEntity.ok("예약이 성공적으로 취소되었습니다.");
         } catch (Exception e) {

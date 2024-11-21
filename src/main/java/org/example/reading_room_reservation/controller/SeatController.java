@@ -27,7 +27,7 @@ public class SeatController {
         return seatService.getAllSeats();
     }
 
-    @GetMapping("/{id}")
+        @GetMapping("/{id}")
     public ResponseEntity<Seat> getSeatById(@PathVariable int id) {
         Seat seat = seatService.getSeatById(id);
         return ResponseEntity.ok(seat);

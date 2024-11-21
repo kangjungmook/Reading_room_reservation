@@ -1,44 +1,73 @@
 <template>
-  <div class="seat-reservation">
-    <h2>좌석 예약</h2>
-    <div class="seat-map">
-      <div v-for="seat in seats" :key="seat.id" class="seat-row">
-        <div
-          :class="{
-            seat: true,
-            available: seat.isAvailable === 1,
-            reserved: seat.isAvailable === 0 && seat.reservedBy === userId,
-            selected: selectedSeat && selectedSeat.id === seat.id,
-          }"
-          @click="selectSeat(seat)"
-        >
-          {{ seat.seatNumber || "N/A" }}
-        </div>
+  <div class="seat-reservation container mt-5">
+    <h2 class="text-center">좌석 예약</h2>
+    <div class="seat-map d-flex flex-wrap justify-content-center mb-4">
+      <div 
+        v-for="seat in seats" 
+        :key="seat.id" 
+        class="seat card p-2 m-2"
+        :class="{
+          available: seat.isAvailable === 1,
+          reserved: seat.isAvailable === 0 && seat.reservedBy !== userId,
+          selected: selectedSeat?.id === seat.id,
+        }"
+        @click="selectSeat(seat)"
+      >
+        <h5 class="seat-number">{{ seat.seatNumber || "N/A" }}</h5>
       </div>
     </div>
 
-    <button
-      @click="cancelReservation"
-      :disabled="!selectedSeat || selectedSeat.reservedBy !== userId"
-    >
-      예약 취소하기
-    </button>
-    <p v-if="message">{{ message }}</p>
+    <!-- 선택된 좌석 표시 -->
+    <div v-if="selectedSeat" class="alert alert-info">
+      <p>선택된 좌석: {{ selectedSeat.seatNumber }}</p>
+    </div>
 
-    <div v-if="showModal" class="modal">
-      <div class="modal-content">
-        <span class="close" @click="closeModal">&times;</span>
-        <h3>예약 세부사항</h3>
-        <label for="duration">예약 시간 (시간):</label>
+    <!-- 예약 버튼: 선택된 좌석이 있고 예약 시간이 설정되면 예약 창 띄우기 -->
+    <button 
+      @click="openReservationPopup"
+      :disabled="!selectedSeat"
+      class="btn btn-primary">
+      예약하기
+    </button>
+    
+    <!-- 예약 취소 버튼 -->
+    <button 
+      @click="cancelReservation" 
+      :disabled="!selectedSeat || String(selectedSeat.reservedBy) !== String(userId)"
+      class="btn btn-danger">
+      예약 취소
+    </button>
+
+    <!-- 사용자 메시지 -->
+    <p v-if="message" class="alert alert-warning">{{ message }}</p>
+
+    <!-- 팝업 창 -->
+    <div v-if="isPopupOpen" class="popup">
+      <div class="popup-content card p-4">
+        <h3>예약 시간 선택</h3>
+        <label for="reservationTime">예약 시간 (시간):</label>
         <input
           type="number"
-          v-model.number="reservationDuration"
-          min="1"
-          placeholder="최소 1시간"
+          id="reservationTime"
+          v-model="reservationTime"
+          :min="1"
+          :max="24"
+          placeholder="예약 시간을 입력하세요"
+          class="form-control"
         />
-        <p>남은 시간: {{ remainingTime }} 시간</p>
-        <button @click="confirmReservation">확인</button>
+        <button @click="reserveSeat" class="btn btn-success mt-3">예약</button>
+        <button @click="closePopup" class="btn btn-secondary mt-3">취소</button>
       </div>
+    </div>
+
+    <!-- 예약된 좌석 시간 표시 -->
+    <div v-if="reservedSeats.length" class="mt-4">
+      <h5>예약된 좌석</h5>
+      <ul class="list-group">
+        <li v-for="seat in reservedSeats" :key="seat.id" class="list-group-item">
+          좌석 {{ seat.seatNumber }} - 예약 시간: {{ seat.reservationTime }} 시간
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -47,27 +76,21 @@
 export default {
   data() {
     return {
-      seats: [], // 좌석 정보
+      seats: [], // 좌석 데이터
       selectedSeat: null, // 선택된 좌석
-      userReservation: null, // 사용자의 기존 예약
-      message: "", // 알림 메시지
-      showModal: false, // 모달 표시 여부
-      reservationDuration: 1, // 예약 시간
-      remainingTime: 0, // 남은 시간
-      userId: localStorage.getItem("userId"), // 로컬 스토리지에서 사용자 ID 가져오기
+      userId: localStorage.getItem("userId"), 
+      message: "", 
+      reservationTime: null, // 예약 시간
+      isPopupOpen: false, 
+      reservedSeats: [], // 예약된 좌석 목록
     };
   },
   async mounted() {
-    await this.fetchSeats();
-    await this.checkUserReservation(); // 사용자의 기존 예약 확인
-  },
-  watch: {
-    reservationDuration(newVal) {
-      this.remainingTime = newVal;
-    },
+    await this.fetchSeats(); 
+    this.loadReservedSeats(); 
   },
   methods: {
-    // 좌석 정보 가져오기
+    // 서버에서 좌석 정보 가져오기
     async fetchSeats() {
       try {
         const response = await fetch("/api/seats");
@@ -78,102 +101,78 @@ export default {
       }
     },
 
-    // 사용자의 기존 예약 확인
-    async checkUserReservation() {
-      try {
-        const response = await fetch(`/api/users/${this.userId}/reservations`);
-        if (!response.ok) throw new Error("사용자 예약 정보를 불러올 수 없습니다.");
-        const reservations = await response.json();
-
-        // 사용자 예약 정보 설정 (1개의 좌석만 허용)
-        this.userReservation = reservations.length > 0 ? reservations[0] : null;
-
-        if (this.userReservation) {
-          this.message = `이미 예약된 좌석이 있습니다: ${this.userReservation.seatNumber}`;
-        }
-      } catch (error) {
-        this.message = "기존 예약 확인 중 오류가 발생했습니다: " + error.message;
-      }
+    // 예약된 좌석 정보 로드
+    loadReservedSeats() {
+      const reservedSeatsFromStorage = JSON.parse(localStorage.getItem('reservedSeats')) || [];
+      this.reservedSeats = reservedSeatsFromStorage;
     },
 
     // 좌석 선택
     selectSeat(seat) {
-      console.log("선택된 좌석:", seat); // 선택된 좌석 정보 확인
-      console.log("좌석 사용 가능 여부:", seat.isAvailable); // 해당 좌석의 사용 가능 여부 확인
-      console.log("예약된 사용자:", seat.reservedBy); // 좌석을 예약한 사용자 확인
+      console.log("클릭한 좌석:", seat);
 
-      if (this.userReservation && this.userReservation.seatId !== seat.id) {
-        this.message = "이미 예약된 좌석이 있습니다. 취소 후 다시 시도해주세요.";
-        console.log("이미 예약된 좌석입니다.");
-        return;
+      if (seat.isAvailable === 1 || String(seat.reservedBy) === String(this.userId)) {
+        this.selectedSeat = seat;
+        this.message = "";
+        console.log("현재 선택된 좌석:", this.selectedSeat);
+      } else {
+        this.message = "선택할 수 없는 좌석입니다.";
       }
-
-      if (seat.isAvailable === 0 && seat.reservedBy !== this.userId) {
-        this.message = "이미 다른 사용자가 예약한 좌석입니다.";
-        console.log("다른 사용자가 예약한 좌석입니다.");
-        return;
-      }
-
-      // 예약된 사용자 정보가 없는 경우를 대비하여 조건 추가
-      if (seat.reservedBy === undefined || seat.reservedBy === null) {
-        console.log("예약된 사용자 없음");
-      }
-
-      this.selectedSeat = seat;
-      this.showModal = true;
-      console.log("선택된 좌석:", this.selectedSeat); // 선택된 좌석 정보 출력
     },
 
-    // 예약 확인 및 요청
-    async confirmReservation() {
-      console.log("예약 확인 시작");
-      console.log("선택된 좌석:", this.selectedSeat); // 선택된 좌석 정보 확인
-      console.log("예약 시간:", this.reservationDuration); // 예약 시간 확인
-      console.log("사용자 ID:", this.userId); // 사용자 ID 확인
-
-      if (!this.selectedSeat || this.reservationDuration < 1 || !this.userId) {
-        this.message = "좌석 및 예약 시간을 확인 후 진행해주세요.";
-        console.log("좌석 또는 예약 시간 오류");
-        return;
-      }
-
-      if (this.userReservation) {
-        this.message = "이미 예약된 좌석이 있습니다. 취소 후 다시 시도해주세요.";
-        console.log("이미 예약된 좌석이 있습니다.");
-        return;
-      }
-
-      await this.reserveSeat();
-      this.closeModal();
+    // 예약하기 버튼을 눌렀을 때 팝업 창 열기
+    openReservationPopup() {
+      if (!this.selectedSeat) return;
+      this.isPopupOpen = true;
+      this.reservationTime = null;
     },
+
+    // 팝업 창 닫기
+    closePopup() {
+      this.isPopupOpen = false;
+      this.reservationTime = null;
+    },
+
     // 좌석 예약
     async reserveSeat() {
+      if (!this.selectedSeat || !this.reservationTime) return;
+
       try {
         const response = await fetch(`/api/seats/${this.selectedSeat.id}/reserve`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             userId: this.userId,
-            duration: this.reservationDuration,
+            reservationTime: this.reservationTime,
           }),
         });
 
-        if (!response.ok) throw new Error("좌석 예약에 실패했습니다.");
-        this.message = "좌석 예약이 완료되었습니다.";
+        if (!response.ok) throw new Error("예약 실패: 이미 예약된 좌석입니다.");
 
-        // 예약 성공 후 상태 갱신
-        await this.fetchSeats();
-        await this.checkUserReservation();
+        // 예약 성공 시 처리
+        this.message = `좌석 ${this.selectedSeat.seatNumber}이(가) 예약되었습니다. 예약 시간: ${this.reservationTime} 시간`;
+
+        // 예약된 좌석을 로컬 스토리지에 저장
+        this.reservedSeats.push({
+          seatNumber: this.selectedSeat.seatNumber,
+          reservationTime: this.reservationTime,
+        });
+        localStorage.setItem('reservedSeats', JSON.stringify(this.reservedSeats));
+
+        await this.fetchSeats(); 
+        this.selectedSeat = this.seats.find(seat => seat.id === this.selectedSeat.id);
+        this.isPopupOpen = false; 
       } catch (error) {
-        this.message = "좌석 예약 중 오류가 발생했습니다: " + error.message;
+        this.message = error.message;
       }
     },
 
-    // 예약 취소
+    // 좌석 예약 취소
     async cancelReservation() {
-      // 좌석을 선택한 상태여야 하고, 선택된 좌석이 예약된 좌석이어야 함
-      if (!this.selectedSeat || this.selectedSeat.reservedBy !== this.userId) {
-        this.message = "취소할 예약을 선택하거나 자신의 예약만 취소할 수 있습니다.";
+      if (!this.selectedSeat || String(this.selectedSeat.reservedBy) !== String(this.userId)) {
+        this.message = "자신이 예약한 좌석만 취소할 수 있습니다.";
         return;
       }
 
@@ -183,79 +182,87 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: this.userId }),
         });
+        if (!response.ok) throw new Error("예약 취소 실패");
 
-        if (!response.ok) throw new Error("예약 취소에 실패했습니다.");
-        this.message = "예약이 취소되었습니다.";
+        this.reservedSeats = this.reservedSeats.filter(seat => seat.seatNumber !== this.selectedSeat.seatNumber);
+        localStorage.setItem('reservedSeats', JSON.stringify(this.reservedSeats));
 
-        // 상태 초기화
-        await this.fetchSeats();
-        await this.checkUserReservation(); // 예약 정보를 새로고침
-        this.selectedSeat = null; // 선택된 좌석 초기화
+        this.message = `좌석 ${this.selectedSeat.seatNumber}의 예약이 취소되었습니다.`;
+        await this.fetchSeats(); 
       } catch (error) {
-        this.message = "예약 취소 중 오류가 발생했습니다: " + error.message;
+        this.message = error.message;
       }
-    },
-
-    // 모달 닫기
-    closeModal() {
-      this.showModal = false;
-      this.selectedSeat = null;
-      this.reservationDuration = 1;
-      this.remainingTime = 0;
     },
   },
 };
 </script>
 
 <style scoped>
+.seat-reservation {
+  padding: 20px;
+}
+
 .seat-map {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-.seat-row {
-  display: flex;
-}
-.seat {
-  width: 50px;
-  height: 50px;
-  margin: 5px;
-  text-align: center;
-  line-height: 50px;
-  cursor: pointer;
-  border: 1px solid #333;
-  transition: background-color 0.3s ease;
-}
-.seat.available {
-  background-color: #4caf50;
-}
-.seat.reserved {
-  background-color: #f44336;
-  cursor: not-allowed;
-}
-.seat.selected {
-  background-color: #ffeb3b;
+  gap: 10px;
+  justify-content: center;
 }
 
-.modal {
+.seat {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #ccc;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #f8f9fa;
+}
+
+.seat.available {
+  background-color: #d4edda;
+}
+
+.seat.reserved {
+  background-color: #f8d7da;
+}
+
+.seat.selected {
+  background-color: #cce5ff;
+}
+
+button {
+  margin-right: 10px;
+  padding: 10px 20px;
+}
+
+.popup {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.modal-content {
-  background-color: white;  
+
+.popup-content {
+  background-color: white;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 10px;
+  width: 300px;
   text-align: center;
 }
-.close {
-  cursor: pointer;
-  float: right;
+
+.popup-content input {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.popup-content button {
+  margin-top: 10px;
 }
 </style>
