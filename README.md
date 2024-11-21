@@ -1,5 +1,22 @@
+
+https://github.com/user-attachments/assets/92f8d1db-a2df-45f7-b621-ddafc8dee500
+
+
+
+https://github.com/user-attachments/assets/3fb5ea28-020e-4555-b9c2-1e05a00e2d04
+
+
+
+https://github.com/user-attachments/assets/e425acd2-f094-48b5-a078-96c03cf49dba
+
+
 # 테이블
+
+
+
 ```sql
+
+
 -- 테이블 rrm.reservations
 CREATE TABLE IF NOT EXISTS `reservations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
