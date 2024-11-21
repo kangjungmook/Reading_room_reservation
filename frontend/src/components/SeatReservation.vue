@@ -149,7 +149,7 @@ export default {
           }),
         });
 
-        if (!response.ok) throw new Error("예약 실패: 이미 예약된 좌석입니다.");
+        if (!response.ok) throw new Error("예약은 하나만 가능합니다.");
 
         // 예약 성공 시 처리
         this.message = `좌석 ${this.selectedSeat.seatNumber}이(가) 예약되었습니다. 예약 시간: ${this.reservationTime} 시간`;
