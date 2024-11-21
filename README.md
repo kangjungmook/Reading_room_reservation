@@ -1,53 +1,26 @@
+## 프로젝트의 목적
+저는 이 프로젝트 통해 Spring Boot를 사용하여 RESTful API를 구현하는 것을 연습을 하기위해 만들었습니다. 
 
+## 기술
+* Java: JDK 21 <br>
+* Spring Boot: 3.0<br>
+* Frontend: Vue.js<br>
+* IDE: IntelliJ IDEA, Visual Studio<br>
+* Database: MySQL
+
+## 기능
+* <a href="https://github.com/user-attachments/assets/9099398f-8f21-4e66-b0d2-2a39ff270a56" target="_blank">회원가입</a>
+* <a href="https://github.com/user-attachments/assets/7379a379-4f7d-4d8d-a8a3-c93f50b1a277" target="_blank">로그인 및 로그아웃(JWT 토큰 인증 방식)</a>
+* <a href="https://github.com/user-attachments/assets/997206ad-73d6-43d5-87be-3dd569f48a15" target="_blank">미리보기</a>
+* <a href="https://github.com/user-attachments/assets/54b2393f-271f-4c04-8075-aa8a8c2e22b2" target="_blank">좌석 예약 하기(중복예약X)</a>
+* <a href="https://github.com/user-attachments/assets/7253927c-3ddc-4035-80c5-d099d3e7827d" target="_blank">좌석 예약 취소</a>
+
+## 소개
 https://github.com/user-attachments/assets/92f8d1db-a2df-45f7-b621-ddafc8dee500
 
-
-
-https://github.com/user-attachments/assets/3fb5ea28-020e-4555-b9c2-1e05a00e2d04
-
-
-
-https://github.com/user-attachments/assets/e425acd2-f094-48b5-a078-96c03cf49dba
-
-
-# 테이블
-
-
-
-```sql
-
-
--- 테이블 rrm.reservations
-CREATE TABLE IF NOT EXISTS `reservations` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `seat_id` int(11) NOT NULL,
-  `reserved_at` timestamp NULL DEFAULT NULL,
-  `reserved_until` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FK__users` (`user_id`),
-  KEY `FK__seats` (`seat_id`),
-  CONSTRAINT `FK__seats` FOREIGN KEY (`seat_id`) REFERENCES `seats` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `FK__users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- 테이블 rrm.seats 
-CREATE TABLE IF NOT EXISTS `seats` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `seat_number` varchar(10) NOT NULL DEFAULT '',
-  `is_available` tinyint(4) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `seat_number` (`seat_number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- 테이블 rrm.users
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL DEFAULT '0',
-  `email` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-```
+## 개선해야 할 점
+* 실시간으로 좌석 예약 시간이 얼마나 남았는지 보이게 하기
+* ui/ix 개선
+* 고객 지원 기능 추가
+* 사용자 안내 및 피드백 추가
+* 성능 항샹
